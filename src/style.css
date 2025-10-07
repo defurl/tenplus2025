@@ -53,6 +53,7 @@ body {
     opacity: 0;
     transform: translateY(30px);
     transition: opacity 0.8s ease, transform 0.8s ease;
+    will-change: opacity, transform;
 }
 
 .scroll-reveal.animate {
@@ -60,7 +61,44 @@ body {
     transform: translateY(0);
 }
 
-.scroll-reveal.stagger-1.animate { transition-delay: 0.2s; }
-.scroll-reveal.stagger-2.animate { transition-delay: 0.4s; }
-.scroll-reveal.stagger-3.animate { transition-delay: 0.6s; }
-.scroll-reveal.stagger-4.animate { transition-delay: 0.8s; }
+/* Animate items within scroll-reveal elements */
+.animate-item {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.animate-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Left and right animations */
+.animate-from-left {
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.animate-from-right {
+    opacity: 0;
+    transform: translateX(50px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.animate-from-left.visible,
+.animate-from-right.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Staggered animation delays */
+.delay-1 { transition-delay: 0.2s; }
+.delay-2 { transition-delay: 0.4s; }
+.delay-3 { transition-delay: 0.6s; }
+.delay-4 { transition-delay: 0.8s; }
+
+/* Debug helper class to visually identify scroll-reveal elements */
+.scroll-reveal-debug {
+    outline: 2px dashed rgba(255, 0, 0, 0.5);
+}

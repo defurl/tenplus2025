@@ -1,9 +1,8 @@
 <template>
     <section id="puzzle">
-        <h2 class="fancy-font scroll-reveal fade-up">Solve this puzzle!</h2>
-        <p class="scroll-reveal fade-up stagger-1">Drag the pieces to complete the image.</p>
+        <h2 class="fancy-font animate-item">Solve this puzzle!</h2>
         <div class="puzzle-main-container">
-            <div ref="piecesTray" class="puzzle-pieces-tray scroll-reveal fade-up stagger-2">
+            <div ref="piecesTray" class="puzzle-pieces-tray animate-item delay-2">
                 <div 
                     v-for="piece in piecesInTray" 
                     :key="piece.id" 
@@ -15,7 +14,7 @@
                 </div>
             </div>
             
-            <div class="puzzle-board-area scroll-reveal fade-up stagger-3">
+            <div class="puzzle-board-area animate-item delay-3">
                 <div ref="puzzleBoardContainer" class="puzzle-board-container">
                     <div 
                         v-for="piece in dropZones" 
@@ -61,6 +60,29 @@
     align-items: center;
     justify-content: center;
     background-color: #EAD7BB;
+}
+
+/* Animation classes */
+.animate-item {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 1s ease forwards;
+}
+
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
+.delay-4 { animation-delay: 0.8s; }
+
+@keyframes fadeUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0);
+    }
 }
 #puzzle h2 { font-size: 3rem; text-align: center; color: #6B4F4F; margin-bottom: 1rem; }
 #puzzle p { text-align: center; color: #555; margin-bottom: 3rem; }

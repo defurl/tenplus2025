@@ -1,5 +1,5 @@
 <template>
-    <div class="music-container fade-in stagger-4" :class="{ 'fade-out': fadeOut }">
+    <div class="music-container" :class="{ 'fade-out': fadeOut }">
         <div id="music-panel" :class="{ 'visible': isPanelVisible }">
             <div class="music-info">
                 <svg style="width:1.5rem; height:1.5rem; color:#6B4F4F;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,7 +43,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </button>
-                <button id="music-toggle" @click="toggleMusic" @mouseenter="showMusicPanel">
+                <button id="music-control-btn" @click="toggleMusic">
                     <svg v-show="!isPlaying" style="width:1.5rem; height:1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -81,7 +81,7 @@
             </div>
         </div>
         
-        <button id="music-toggle" @click="toggleMusic" @mouseenter="showMusicPanel">
+        <button id="music-toggle" @click="togglePanel" title="Open/Close Music Panel">
             <svg style="width:1.5rem; height:1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
             </svg>
@@ -192,12 +192,22 @@
     color: white;
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s ease;
+    transition: background-color 0.3s, transform 0.3s ease, box-shadow 0.3s ease;
     z-index: 51;
+    position: relative;
+    overflow: hidden;
 }
 #music-toggle:hover { 
     background-color: #6B4F4F; 
     transform: scale(1.1);
+}
+#music-toggle:active {
+    transform: scale(0.95);
+}
+/* Visual indication when panel is open */
+#music-panel.visible + #music-toggle {
+    box-shadow: 0 0 0 4px rgba(107, 79, 79, 0.3), 0 8px 16px rgba(0,0,0,0.15);
+    background-color: #6B4F4F;
 }
 .progress-container {
     width: 100%;
@@ -296,8 +306,6 @@ function prevSong() {
     if (isPlaying.value) {
         playSong();
     }
-    
-    showMusicPanel();
 }
 
 // Next song
@@ -319,14 +327,11 @@ function nextSong() {
     if (isPlaying.value) {
         playSong();
     }
-    
-    showMusicPanel();
 }
 
 // Toggle shuffle
 function toggleShuffle() {
     isShuffling.value = !isShuffling.value;
-    showMusicPanel();
 }
 
 // Toggle loop
@@ -335,13 +340,11 @@ function toggleLoop() {
     if (audio.value) {
         audio.value.loop = isLooping.value;
     }
-    showMusicPanel();
 }
 
 // Toggle playlist visibility
 function togglePlaylist() {
     isPlaylistVisible.value = !isPlaylistVisible.value;
-    showMusicPanel();
 }
 
 // Select song from playlist
@@ -351,7 +354,6 @@ function selectSong(index) {
     if (isPlaying.value) {
         playSong();
     }
-    showMusicPanel();
 }
 
 // Update progress bar
@@ -393,13 +395,20 @@ function showMusicPanel() {
     if (fadeTimeoutId) {
         clearTimeout(fadeTimeoutId);
     }
+}
+
+// Toggle music panel visibility
+function togglePanel() {
+    userInteracted.value = true;
     
-    // Set timeout to fade after 5 seconds of inactivity
-    fadeTimeoutId = setTimeout(() => {
-        if (!isPlaylistVisible.value && isPlaying.value) {
-            fadeOut.value = true;
-        }
-    }, 5000);
+    // Toggle panel visibility
+    isPanelVisible.value = !isPanelVisible.value;
+    fadeOut.value = false;
+    
+    // Clear any existing timeout
+    if (fadeTimeoutId) {
+        clearTimeout(fadeTimeoutId);
+    }
 }
 
 // Toggle music play/pause
@@ -411,14 +420,15 @@ function toggleMusic() {
     } else {
         playSong();
     }
-    
-    showMusicPanel();
 }
 
 // Initialize the music player
 onMounted(() => {
     // Initialize with first song
     loadSong(currentSong.value);
+    
+    // Initially hide the panel
+    isPanelVisible.value = false;
     
     // Add global click handler for first interaction
     const handleFirstInteraction = () => {

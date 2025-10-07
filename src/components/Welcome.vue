@@ -1,10 +1,10 @@
 <template>
     <section id="welcome">
-        <div>
-            <h1 class="fancy-font fade-in">TenPlus 2025,</h1>
-            <p class="fancy-font subtitle fade-in stagger-1">OG13.</p>
+        <div class="welcome-content">
+            <h1 class="fancy-font animate-item">TenPlus 2025,</h1>
+            <p class="fancy-font subtitle animate-item delay-1">OG13.</p>
         </div>
-        <div class="polaroids-container fade-in stagger-3">
+        <div class="polaroids-container animate-item delay-2">
             <div class="polaroid">
                 <img src="../assets/images/og13_1.jpg" alt="Tenplus">
                 <p class="fancy-font">An End</p>
@@ -14,11 +14,28 @@
                 <p class="fancy-font">To Our Beginning</p>
             </div>
         </div>
-        <div class="scroll-indicator fade-in stagger-4">
+        <div class="scroll-indicator animate-item delay-3">
             <svg style="width:2rem; height:2rem; color: #A87C7C;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
         </div>
     </section>
 </template>
+
+<script setup>
+// No need for complex logic here
+</script>
+
+<style scoped>
+/* Animation classes */
+.animate-item {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 1s ease forwards;
+}
+
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
+</style>
 
 <style scoped>
     /* Welcome Section */
