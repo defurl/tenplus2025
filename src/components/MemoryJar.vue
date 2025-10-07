@@ -32,13 +32,14 @@
     </section>
 
     <Teleport to="body">
-        <Transition name="memory-popup" @after-leave="handlePopupLeave">
-            <div
-                v-if="popupMounted"
-                id="memory-board-popup"
-                :class="{ visible: popupVisible }"
-                @click.self="closePopup"
-            >
+        <div v-if="popupMounted">
+            <Transition name="memory-popup" @after-leave="handlePopupLeave" :duration="{ enter: 500, leave: 300 }">
+                <div
+                    v-show="popupVisible"
+                    id="memory-board-popup"
+                    :class="{ visible: popupVisible }"
+                    @click.self="closePopup"
+                >
                 <div class="memory-board-content">
                     <button
                         type="button"
@@ -50,8 +51,9 @@
                         ×
                     </button>
                     <h3 class="fancy-font">{{ currentLetter?.author || 'An anonymous letter' }}</h3>
+                    
                     <div class="memory-content">
-                        <p>{{ currentLetter?.text || '' }}</p>
+                        <p v-if="currentLetter">{{ currentLetter.text }}</p>
                         <!-- Image display (if available) -->
                         <div v-if="currentLetter?.image" class="memory-image-container">
                             <img :src="currentLetter.image" :alt="currentLetter.author || 'Letter image'" class="memory-image" />
@@ -59,8 +61,9 @@
                     </div>
                     <div class="close-hint">Tap anywhere to close</div>
                 </div>
-            </div>
-        </Transition>
+                </div>
+            </Transition>
+        </div>
     </Teleport>
 </template>
 
@@ -266,6 +269,14 @@
 #memory-board-popup.visible .memory-board-content {
     transform: scale(1) translateY(0);
     opacity: 1;
+    visibility: visible;
+}
+
+/* Ensure content is visible inside visible popup */
+#memory-board-popup.visible .memory-content,
+#memory-board-popup.visible p {
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .close-button {
@@ -332,7 +343,7 @@
 
 .memory-popup-enter-active,
 .memory-popup-leave-active {
-    transition: opacity 0.6s ease, backdrop-filter 0.6s ease;
+    transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
 }
 
 .memory-popup-enter-from,
@@ -341,6 +352,20 @@
     backdrop-filter: blur(0px);
 }
 
+/* Add specific styles to keep the content visible during transitions */
+.memory-popup-enter-active .memory-board-content,
+.memory-popup-leave-active .memory-board-content {
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+/* Ensure text content is always visible */
+.memory-board-content p {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* No need for fadeSlideIn animation - removing it */
+
 .memory-content {
     max-height: 50vh;
     overflow-y: auto;
@@ -348,11 +373,31 @@
     margin-bottom: 1rem;
     /* For mobile scrolling */
     -webkit-overflow-scrolling: touch;
+    /* Ensure content doesn't disappear */
+    position: relative;
+    display: block;
+}
+
+.memory-board-content p {
+    font-size: 1rem;
+    color: #555;
+    text-align: center;
+    white-space: pre-line;
+    line-height: 1.5;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    /* Ensure text is always visible */
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
 }
 
 .memory-image-container {
     margin: 1rem auto;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .memory-image {
@@ -360,9 +405,21 @@
     max-height: 300px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    margin: 0 auto;
+    display: block;
+}
+
+.memory-image:hover {
+    transform: scale(1.01);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
 }
 
 @media (max-width: 768px) {
+    /* Stack vertically on smaller screens */
+    .memory-content.side-by-side {
+        flex-direction: column;
+    }
+    
     .memory-image {
         max-height: 200px;
     }
@@ -404,7 +461,6 @@ function beforeEnterViewport() {
 
 const rawMemories = [
     "em yêu các anh chị nhiều lắm. các anh chị đã dành cả một mùa hè tuổi niên thiếu của mình cho bọn em. các anh chị nói rằng bọn em là mùa hè của các anh chị. còn các anh chị chính là khởi đầu của bọn em. các anh chị chính là khởi đầu cho những ngày đón nắng ấm tại ngữ, cho những ngày cơn gió mát lạnh phả vào da thịt. là khởi đầu cho những tiếng cười đầy ắp gian phòng khi em chưa quen với môi trường mới, là khởi đầu cho biết bao long lanh vui mừng trong đôi mắt của bọn em khi bước vào ngôi nhà mới. và em mong, chúng ta sẽ cùng nhau đồng hành với nhau thật lâu. chẳng phải một mùa, một năm học, một nghìn ngày, mà là cả một đời luôn được không ạ...",
-    
     "sau campday em muốn mãi được là cper của các anh chị. em biết các anh chị đều là những cper trân quý của các ogl của các anh chị. đôi khi em nhìn các anh chị, em lại nghĩ, không biết đôi lúc nhìn thấy bọn em, các anh chị có trộm nghĩ lại lúc mình mới bước chân vào chuyên ngữ, cũng bỡ ngỡ như em đây không. em nghĩ là các anh chị sẽ nhớ lắm, những phút giây ogtime và famtime khi các anh chị còn là tân học sinh. những bước chân đầu tiên vào ngôi trường mới, những lời chào đầu tiên với những người bạn chưa gặp bao giờ, những khúc mắc về biết bao sự mới mẻ của ngôi trường chuyên ngữ. các anh chị chắc hẳn cũng thấy bỡ ngỡ lắm, thấy sốt sắng khi thấy xung quanh mình toàn những người bạn thật giỏi. hẳn anh chị sẽ có nhiều lắm những lúc mông lung. và em mong dù có nói ra hay không, thì những vết thương, những cảm xúc mà các anh chị giữ riêng cho mình sẽ đều được vỗ về, an ủi, và được chữa lành. khi em ngồi vào nơi góc bàn mới, em thật sự đã thấy mình nhỏ bé lắm trong khoảng trời hình chữ nhật này. nhìn lên trên là bạn thủ khoa ấy, nhìn xuống dưới em lại là bạn đã bỏ túi biết bao chứng chỉ ngoại ngữ, rồi bên cạnh em là lại những người bạn có tài có khiếu, gì cũng biết làm. ngày mới bước vào trường, em thấy lạc lõng, vì thấy có những bạn đã quen nhau từ trước, còn em thì lại lạc lõng đứng một góc nơi sân trường nhìn họ. cho đến khi em được quen biết og13, và cảm giác thân quen lắm với nơi này. từng gói quà kỉ niệm, từng bức ảnh của og mình em vẫn luôn giữ cẩn thận. em biết ơn các anh chị nhiều lắm, vì đã giúp em làm quen, giúp em được biết thêm về mọi người, và rằng em không hề nhỏ bé như em nghĩ. dù bọn em chẳng nói ra nhiều, nhưng các anh chị có ảnh hưởng lớn lắm đến từng cuộc trò chuyện, từng sự làm quen, từng giây phút ở chuyên ngữ của tụi em. quay trở lại về năm đầu của khóa 56, 55, 54, và 52, các anh chị hẳn đã luôn nhung nhớ buổi campday năm ấy, cùng biết bao xúc cảm, những tiếng cười rộn rã trong thuở lập thu, những tiếng nấc cụt vang lên từng đợt vào cuối buổi campday. em thấy thời gian trôi nhanh quá, càng lớn em lại càng cảm thấy thời gian trôi nhanh hơn. các anh chị nhờ. sao những phút giây mong chờ đến buổi ogtime, famtime, và campday dài thế, nhưng khi đến lúc ấy, sao thời gian lại trôi qua nhanh thế, như gió heo may đong đưa chuyên chở vút bay nơi nào. em mong các anh chị sẽ luôn âu yếm những khoảnh khắc là cper của mình, và em biết là anh chị luôn cất giấu nó vào một ngăn trong trái tim mà dẫu cho bụi thời gian có phủ đầy, thì kí ức ấy vẫn còn vẹn nguyên. vì em sẽ làm như vậy, em cũng thế, em cũng sẽ giữ những khoảnh khắc về mười ba của mình thật toàn vẹn trong tim. các anh chị hãy cứ chia sẻ với cper của mình nhé. và cper luôn luôn ở bên các anh chị, đừng quên điều này nhé. og13 luôn ở cùng nhau, sẽ cùng lưu giữ những kí ức và tạo ra nhiều những khoảnh khắc nữa.",
     "enk cj oi e thik cec, crc, cdc, cfc, cnn puzzles, cps, cnn shine, cnn zoom lm, cko e đy cu@ s@u dC k0?",
     "cảm ơn anh híu nhìu đã lập cho web ý nghĩa này. khót lun ớ huhu.",
@@ -437,6 +493,8 @@ const popupVisible = ref(false);
 const currentLetter = ref(null);
 const draggingLetter = ref(null);
 const dragContext = ref({ offsetX: 0, offsetY: 0, startX: 0, startY: 0 });
+// Track if a popup is in the process of closing to prevent rapid open/close issues
+const isClosingPopup = ref(false);
 
 let scrollObserver = null;
 
@@ -536,7 +594,8 @@ function getLetterStyle(letter) {
 }
 
 function handlePointerDown(event, letter) {
-    if (popupVisible.value || letter.isOut) {
+    // Prevent drag operations during popups or transitions
+    if (popupVisible.value || isClosingPopup.value || letter.isOut) {
         return;
     }
 
@@ -545,6 +604,13 @@ function handlePointerDown(event, letter) {
         return;
     }
 
+    // Clear any existing drag operation
+    if (draggingLetter.value) {
+        draggingLetter.value.isDragging = false;
+        draggingLetter.value.wasDragged = false;
+    }
+
+    // Set up new drag operation
     draggingLetter.value = letter;
     letter.isDragging = true;
     letter.wasDragged = false;
@@ -556,8 +622,12 @@ function handlePointerDown(event, letter) {
         startY: event.clientY
     };
 
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
+    // Use capture phase to ensure we get all events
+    window.addEventListener('pointermove', handlePointerMove, { capture: true });
+    window.addEventListener('pointerup', handlePointerUp, { capture: true });
+    
+    // Prevent default to avoid text selection during drag
+    event.preventDefault();
 }
 
 function handlePointerMove(event) {
@@ -571,6 +641,7 @@ function handlePointerMove(event) {
         return;
     }
 
+    // Calculate new position
     let newLeft = event.clientX - rect.left - dragContext.value.offsetX;
     let newTop = event.clientY - rect.top - dragContext.value.offsetY;
     
@@ -582,6 +653,7 @@ function handlePointerMove(event) {
     newLeft = clamp(newLeft, horizontalPadding, Math.max(horizontalPadding, rect.width - horizontalPadding));
     newTop = clamp(newTop, verticalPadding, Math.max(verticalPadding, rect.height - verticalPadding));
 
+    // Check if we've exceeded the drag threshold
     if (!letter.wasDragged) {
         const dx = event.clientX - dragContext.value.startX;
         const dy = event.clientY - dragContext.value.startY;
@@ -590,72 +662,98 @@ function handlePointerMove(event) {
         }
     }
 
+    // Update position
     letter.left = newLeft;
     letter.top = newTop;
+    
+    // Prevent default to avoid text selection during drag
+    event.preventDefault();
+    event.stopPropagation();
 }
 
-function handlePointerUp() {
+function handlePointerUp(event) {
     const letter = draggingLetter.value;
     if (letter) {
         letter.isDragging = false;
         letter.scale = randomBetween(0.8, 0.95);
+        
+        // Reset wasDragged state after a small delay
+        // to prevent immediate click after drag
+        const wasDragged = letter.wasDragged;
         setTimeout(() => {
-            letter.wasDragged = false;
-        }, 120);
+            if (letter === draggingLetter.value || !draggingLetter.value) {
+                letter.wasDragged = false;
+            }
+        }, 200);
     }
 
     draggingLetter.value = null;
-    window.removeEventListener('pointermove', handlePointerMove);
-    window.removeEventListener('pointerup', handlePointerUp);
+    
+    // Clean up event listeners
+    window.removeEventListener('pointermove', handlePointerMove, { capture: true });
+    window.removeEventListener('pointerup', handlePointerUp, { capture: true });
+    
+    // Prevent default behavior
+    event.preventDefault();
 }
 
 function handleLetterClick(letter) {
-    // Only check for active drag states, allow previously clicked letters to be clicked again
-    if (letter.isOut || letter.isDragging || letter.wasDragged) {
+    // Prevent clicking while another popup is closing or if letter is already active
+    if (isClosingPopup.value || letter.isOut || letter.isDragging || letter.wasDragged) {
         return;
     }
 
+    // Disable scrolling on body when popup is open
+    document.body.style.overflow = 'hidden';
+
+    // First mount the popup with the letter content
     currentLetter.value = letter;
     letter.isOut = true;
     popupMounted.value = true;
-
-    // Use nextTick to ensure the DOM is updated before showing the popup
-    nextTick(() => {
-        popupVisible.value = true;
-    });
+    
+    // Force a delay before showing the popup to ensure content is fully rendered
+    setTimeout(() => {
+        if (currentLetter.value === letter) { // Only proceed if the letter hasn't changed
+            popupVisible.value = true;
+        }
+    }, 10);
 }
 
+// isClosingPopup ref is defined at the top of the script
+
 function closePopup() {
+    if (isClosingPopup.value) return; // Prevent multiple closing actions
+    isClosingPopup.value = true;
+    
     // First hide the popup, then handlePopupLeave will be called via transition events
     popupVisible.value = false;
     
-    // Add a timeout to force reset any stuck letter states if the transition events fail
-    setTimeout(() => {
-        if (currentLetter.value) {
-            const letter = currentLetter.value;
-            letter.isOut = false;
-            letter.wasDragged = false;
-            letter.isDragging = false;
-            currentLetter.value = null;
-        }
-    }, 1000); // Backup timeout longer than transition duration
+    // Re-enable scrolling on body when popup is closed
+    document.body.style.overflow = '';
+    
+    // Don't immediately reset the letter state, let the transition complete first
+    // The actual reset will happen in handlePopupLeave
 }
 
 function handlePopupLeave() {
-    popupMounted.value = false;
+    // Only process this if we have a current letter
     const letter = currentLetter.value;
-
+    
     if (letter) {
-        // Ensure letter is completely reset and clickable again
-        setTimeout(() => {
-            letter.isOut = false;
-            letter.wasDragged = false;
-            letter.isDragging = false;
-            // Add a small delay to ensure state is fully reset
-        }, 10);
+        // Reset the letter state
+        letter.isOut = false;
+        letter.wasDragged = false;
+        letter.isDragging = false;
     }
-
+    
+    // Clear mounted state
+    popupMounted.value = false;
     currentLetter.value = null;
+    
+    // Allow new popups to be opened after a small delay
+    setTimeout(() => {
+        isClosingPopup.value = false;
+    }, 200);
 }
 
 function handleResize() {
