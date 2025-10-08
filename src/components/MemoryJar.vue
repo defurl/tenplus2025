@@ -148,12 +148,14 @@
     inset: 0;
     /* Constrain letters to the visible part of the jar */
     top: 25%;
-    bottom: 15%;
-    left: 20%;
-    right: 20%;
+    bottom: 18%; /* Increased bottom margin to prevent overflow */
+    left: 15%;
+    right: 15%;
     padding: 0;
     /* Add overflow hidden to ensure letters don't escape */
     overflow: hidden;
+    /* Create a jar shape with clip-path - narrower at bottom to match jar */
+    clip-path: ellipse(42% 45% at 50% 48%);
 }
 
 .jar-letter {
@@ -513,28 +515,76 @@ function getContainerRect() {
     return lettersContainer.value?.getBoundingClientRect() ?? null;
 }
 
-function randomizeLetterPlacement(letter) {
+function randomizeLetterPlacement(letter, index = -1) {
     const rect = getContainerRect();
     if (!rect) {
         return;
     }
 
     containerSize.value = { width: rect.width, height: rect.height };
-
-    if (rect.width <= LETTER_MARGIN * 8 || rect.height <= LETTER_MARGIN * 2) {
-        letter.left = rect.width / 2;
-        letter.top = rect.height / 2;
-    } else {
-        // Use a narrower area for horizontal placement (centered in jar)
-        const horizontalPadding = rect.width * 0.3; // 30% padding from edges
-        letter.left = randomBetween(horizontalPadding, rect.width - horizontalPadding);
+    
+    // Define jar shape constraints
+    const jarWidth = rect.width;
+    const jarHeight = rect.height;
+    
+    // Use a grid-based approach for better distribution on mobile
+    if (index >= 0) {
+        // Calculate grid size based on total number of letters
+        const totalLetters = rawMemories.length;
+        const gridCols = Math.ceil(Math.sqrt(totalLetters));
+        const gridRows = Math.ceil(totalLetters / gridCols);
         
-        // Constrain vertical placement to the middle 60% of the container
-        const verticalPadding = rect.height * 0.2; // 20% padding from top and bottom
-        letter.top = randomBetween(verticalPadding, rect.height - verticalPadding);
+        // Calculate cell size
+        const cellWidth = jarWidth / gridCols;
+        const cellHeight = jarHeight / gridRows;
+        
+        // Calculate grid position for this letter
+        const col = index % gridCols;
+        const row = Math.floor(index / gridCols);
+        
+        // Calculate base position (center of the cell)
+        const baseX = (col + 0.5) * cellWidth;
+        const baseY = (row + 0.5) * cellHeight;
+        
+        // Apply horizontal jar shape constraints - narrower at top/bottom, wider in middle
+        const horizontalConstraint = Math.min(1, 4 * baseY / jarHeight * (1 - baseY / jarHeight));
+        const horizontalPadding = jarWidth * (0.35 - 0.15 * horizontalConstraint);
+        
+        // Apply random jitter within the cell (but ensure they don't overlap too much)
+        const jitterX = randomBetween(-cellWidth * 0.3, cellWidth * 0.3);
+        const jitterY = randomBetween(-cellHeight * 0.3, cellHeight * 0.3);
+        
+        // Calculate final position with constraints and jitter
+        const x = baseX + jitterX;
+        const y = baseY + jitterY;
+        
+        // Apply constraints based on jar shape
+        const finalX = clamp(x, horizontalPadding, jarWidth - horizontalPadding);
+        // Tighten the vertical constraint at the bottom to prevent overflow
+        const finalY = clamp(y, jarHeight * 0.25, jarHeight * 0.78);
+        
+        letter.left = finalX;
+        letter.top = finalY;
+    } else {
+        // Fallback to pure random placement if no index provided
+        // Shape the distribution to follow jar contours - narrower at top and bottom, wider in middle
+        const horizontalPadding = rect.width * 0.25; // 25% padding from edges
+        const verticalPaddingTop = rect.height * 0.2; // 20% padding from top
+        const verticalPaddingBottom = rect.height * 0.22; // 22% padding from bottom (increased to prevent overflow)
+        
+        // Create a jar shape distribution
+        const yPosition = randomBetween(verticalPaddingTop, rect.height - verticalPaddingBottom);
+        // Use a modified sine function that gives less space at the bottom
+        const jarPosition = yPosition / rect.height;
+        const jarShape = Math.sin(jarPosition * Math.PI) * (1 - Math.pow(jarPosition, 2) * 0.3);
+        const xPadding = horizontalPadding * (1.5 - jarShape);
+        
+        letter.left = randomBetween(xPadding, rect.width - xPadding);
+        letter.top = yPosition;
     }
-    letter.rotate = randomBetween(-30, 30);
-    letter.scale = randomBetween(0.75, 0.95);
+    
+    letter.rotate = randomBetween(-25, 25);
+    letter.scale = randomBetween(0.8, 0.95);
 }
 
 function initializeLetters() {
@@ -545,12 +595,19 @@ function initializeLetters() {
 
     containerSize.value = { width: rect.width, height: rect.height };
 
-    letters.value = rawMemories.map((content, index) => {
+    // First, shuffle the memories to avoid predictable patterns
+    const shuffledIndices = [...Array(rawMemories.length).keys()]
+        .sort(() => Math.random() - 0.5);
+
+    letters.value = rawMemories.map((content, originalIndex) => {
+        // Get shuffled index to create a more randomized distribution
+        const index = shuffledIndices[originalIndex];
+        
         // Check if the content is a string (legacy format) or an object with text/author/image
         const isStringContent = typeof content === 'string';
         
         const letter = {
-            id: index + 1,
+            id: originalIndex + 1,
             text: isStringContent ? content : content.text,
             author: isStringContent ? "An anonymous letter" : (content.author || "An anonymous letter"),
             image: isStringContent ? null : content.image,
@@ -564,10 +621,11 @@ function initializeLetters() {
             wasDragged: false
         };
 
-        randomizeLetterPlacement(letter);
+        // Use the index for better distribution
+        randomizeLetterPlacement(letter, index);
         
-        // Apply a slight position delay for visual staggering but always be visible
-        letter.scale = 0.85 + (index * 0.005);
+        // Apply a slight scale variation for visual interest but keep them all visible
+        letter.scale = 0.85 + (originalIndex * 0.005);
 
         return letter;
     });
@@ -645,13 +703,25 @@ function handlePointerMove(event) {
     let newLeft = event.clientX - rect.left - dragContext.value.offsetX;
     let newTop = event.clientY - rect.top - dragContext.value.offsetY;
     
-    // Add horizontal constraints to keep letters inside jar shape
-    const horizontalPadding = rect.width * 0.3; // 30% padding from edges
-    // Add vertical constraints to keep letters in middle area of jar
-    const verticalPadding = rect.height * 0.2; // 20% padding from top and bottom
+    // Add jar-shaped constraints - narrower at top and bottom, wider in middle
+    // Calculate the vertical position as a ratio of the jar height
+    const jarHeightRatio = newTop / rect.height;
     
-    newLeft = clamp(newLeft, horizontalPadding, Math.max(horizontalPadding, rect.width - horizontalPadding));
-    newTop = clamp(newTop, verticalPadding, Math.max(verticalPadding, rect.height - verticalPadding));
+    // Create a sinusoidal horizontal constraint that's widest at the middle
+    const horizontalConstraint = Math.min(1, 4 * jarHeightRatio * (1 - jarHeightRatio));
+    
+    // Apply tighter constraints at top/bottom, looser in the middle
+    const horizontalPadding = rect.width * (0.35 - 0.15 * horizontalConstraint);
+    const verticalPaddingTop = rect.height * 0.25; // Top 25% of jar is the neck
+    const verticalPaddingBottom = rect.height * 0.22; // Increased to 22% to prevent overflow
+    
+    // Apply additional horizontal constraints as we get closer to the bottom
+    // to simulate the narrowing of the jar
+    const bottomNarrowing = Math.max(0, (jarHeightRatio - 0.6) * 2.5) * rect.width * 0.1;
+    const adjustedHorizontalPadding = horizontalPadding + bottomNarrowing;
+    
+    newLeft = clamp(newLeft, adjustedHorizontalPadding, rect.width - adjustedHorizontalPadding);
+    newTop = clamp(newTop, verticalPaddingTop, rect.height - verticalPaddingBottom);
 
     // Check if we've exceeded the drag threshold
     if (!letter.wasDragged) {
@@ -762,14 +832,42 @@ function handleResize() {
         containerSize.value = { width: rect?.width ?? 0, height: rect?.height ?? 0 };
         return;
     }
+    
+    // If the size change is significant, completely redistribute letters
+    const widthChange = Math.abs(rect.width / containerSize.value.width - 1);
+    const heightChange = Math.abs(rect.height / containerSize.value.height - 1);
+    
+    if (widthChange > 0.2 || heightChange > 0.2) {
+        // On significant size changes (like orientation change), redistribute completely
+        letters.value.forEach((letter, index) => {
+            // Don't move letters that are currently being interacted with
+            if (!letter.isDragging && !letter.isOut) {
+                randomizeLetterPlacement(letter, index);
+            }
+        });
+    } else {
+        // For minor resize, scale positions proportionally
+        const scaleX = rect.width / containerSize.value.width;
+        const scaleY = rect.height / containerSize.value.height;
 
-    const scaleX = rect.width / containerSize.value.width;
-    const scaleY = rect.height / containerSize.value.height;
-
-    letters.value.forEach(letter => {
-        letter.left = clamp(letter.left * scaleX, LETTER_MARGIN, Math.max(LETTER_MARGIN, rect.width - LETTER_MARGIN));
-        letter.top = clamp(letter.top * scaleY, LETTER_MARGIN, Math.max(LETTER_MARGIN, rect.height - LETTER_MARGIN));
-    });
+        letters.value.forEach(letter => {
+            // Only adjust letters that aren't being interacted with
+            if (!letter.isDragging && !letter.isOut) {
+                // Calculate jar shape constraints based on current position
+                const jarHeightRatio = letter.top / containerSize.value.height;
+                const horizontalConstraint = Math.min(1, 4 * jarHeightRatio * (1 - jarHeightRatio));
+                const horizontalPadding = rect.width * (0.35 - 0.15 * horizontalConstraint);
+                
+                // Apply additional constraints at the bottom of the jar
+                const bottomNarrowing = Math.max(0, (jarHeightRatio - 0.6) * 2.5) * rect.width * 0.1;
+                const adjustedHorizontalPadding = horizontalPadding + bottomNarrowing;
+                
+                letter.left = clamp(letter.left * scaleX, adjustedHorizontalPadding, rect.width - adjustedHorizontalPadding);
+                // Restrict vertical positioning to prevent overflow at the bottom
+                letter.top = clamp(letter.top * scaleY, rect.height * 0.25, rect.height * 0.78);
+            }
+        });
+    }
 
     containerSize.value = { width: rect.width, height: rect.height };
 }

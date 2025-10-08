@@ -58,7 +58,7 @@
 <style scoped>
 /* Puzzle Section */
 #puzzle {
-    min-height: 100vh;
+    min-height: 90vh; /* Slightly less than full height to allow scrolling */
     width: 100%;
     padding: 5rem 1rem;
     display: flex;
@@ -69,6 +69,7 @@
     position: relative; /* Added for focus lock positioning */
     z-index: 1; /* Ensure the puzzle is above other content */
     transition: all 0.3s ease-out; /* Smooth transition when switching modes */
+    touch-action: auto; /* Ensure touch actions work normally when not dragging */
 }
 
 /* Animation classes - Added will-change to improve performance */
@@ -184,7 +185,7 @@
     background-repeat: no-repeat;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
     z-index: 5;
-    touch-action: none; /* Prevents default touch actions like scrolling */
+    touch-action: manipulation; /* Allow pinch-zoom but prevent delay on tap */
 }
 
 .puzzle-piece.placed {
@@ -257,8 +258,9 @@
 
 #puzzle:not(.focus-locked) {
     /* This ensures visibility when not in focus-locked mode */
-    min-height: 100vh; 
+    min-height: 90vh; /* Slightly less than full height to allow scrolling on mobile */
     will-change: transform; /* Prevent flickering during transitions */
+    touch-action: pan-y; /* Allow vertical scrolling on touch devices */
 }
 
 .focus-lock-overlay {
@@ -351,11 +353,14 @@ onMounted(() => {
     // Initialize with completed puzzle
     initCompletedPuzzle();
     
-    // Prevent default touch behaviors that might interfere with dragging
+    // Only prevent default touch behaviors when actually dragging a piece
+    // This ensures normal scrolling works when not interacting with puzzle pieces
     document.addEventListener('touchmove', e => {
-        if (isDragging.value || focusLocked.value) {
+        // Only prevent default if actively dragging a piece, not just when focus locked
+        if (isDragging.value) {
             e.preventDefault();
         }
+        // Allow normal scrolling in all other cases
     }, { passive: false });
     
     // Prevent scrolling with keyboard when focus locked
@@ -366,15 +371,12 @@ onMounted(() => {
         }
     });
     
-    // Add transition listener for focus-locked changes
+    // Add transition listener for focus-locked changes but don't force scroll
     const puzzleSection = document.getElementById('puzzle');
     if (puzzleSection) {
         puzzleSection.addEventListener('transitionend', (e) => {
             if (e.propertyName === 'transform' || e.propertyName === 'opacity') {
-                if (!focusLocked.value) {
-                    // Ensure we're properly positioned when exiting focus-locked mode
-                    puzzleSection.scrollIntoView({ behavior: 'auto', block: 'start' });
-                }
+                // Don't force scrollIntoView as this causes mobile issues
             }
         });
     }
@@ -454,8 +456,13 @@ function initCompletedPuzzle() {
         // Important: Remove focus lock last, after states are updated
         focusLocked.value = false;
         
-        // DO NOT scroll to the puzzle section - this was causing the auto-scrolling issue
-        // Just ensure the puzzle is visible without changing scroll position
+        // For mobile devices, ensure proper cleanup of any touch-related state
+        document.removeEventListener('touchmove', handleDrag);
+        document.removeEventListener('touchend', handleDragEnd);
+        
+        // Reset any lingering state that might affect scrolling
+        isDragging.value = false;
+        draggedPiece.value = null;
     }, 50);
 }
 
@@ -470,7 +477,11 @@ function startSolving() {
     const puzzleSection = document.getElementById('puzzle');
     if (puzzleSection) {
         puzzleSection.scrollIntoView({ behavior: 'smooth' });
-        document.body.style.overflow = 'hidden';
+        
+        // Use a timeout to ensure the scrollIntoView completes before locking scroll
+        setTimeout(() => {
+            document.body.style.overflow = 'hidden';
+        }, 300);
     }
     
     // Scramble and move pieces to tray
@@ -556,7 +567,11 @@ function startDrag(e, piece) {
 
 function handleDrag(e) {
     if (!isDragging.value) return;
-    e.preventDefault();
+    
+    // Only preventDefault if actually dragging to allow normal scrolling otherwise
+    if (isDragging.value) {
+        e.preventDefault();
+    }
     
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
