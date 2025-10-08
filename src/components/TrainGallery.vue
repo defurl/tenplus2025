@@ -1,8 +1,11 @@
 <template>
   <section id="train-gallery" ref="sectionRef">
     <h2 class="fancy-font animate-item">The Journey for a Wonderful Campday</h2>
+    <h3 class="animate-item" style="font-size: 2rem; font-weight: bold; font-style: italic;">~ Dành cho cả OGL và Camper ~</h3>
     <p class="animate-item delay-1">
-    Từ những người xa lạ kết nối với nhau qua post trúng tuyển và chia OG của 10+. Và từ đó, 6+7 con người đã cùng nhau đi qua những tháng ngày của hè năm đó. Qua tập luyện, qua cả bất đồng, qua khó khăn, và sau 4 Train, 1 Dryrun, các OGL đã sẵn sàng để cùng nhau, cùng Camper, tạo nên một mùa <span class="fancy-font" style="font-size:1.5em;">Mười Cộng</span> đáng nhớ 
+    Từ những người xa lạ kết nối với nhau qua post trúng tuyển và chia OG của 10+.
+    Và từ đó, 6+7 con người đã cùng nhau đi qua những tháng ngày của hè năm đó. Qua tập luyện, qua cả bất đồng, qua khó khăn,
+    và sau 4 Train, 1 Dryrun, các OGL đã sẵn sàng để cùng nhau, cùng Camper, tạo nên một mùa <span class="fancy-font" style="font-size:1.5em;">Mười Cộng</span> đáng nhớ 
     </p>
 
     <div class="gallery-container">
@@ -29,7 +32,7 @@
         <div class="gallery-content">
           <h3>Hòa Sắc</h3>
           <p>
-            Tôi không đi train 2, tđgh sẽ viết phần này :>
+            Tui không đi train 2, tui sẽ đợi nọc viết phần này :>
           </p>
         </div>
       </div>
@@ -60,7 +63,7 @@
         <div class="gallery-content">
           <h3>Tỏa Sắc</h3>
           <p>
-            Tôi cũng sủi train 4 :>
+            Tui cũng sủi train 4 :>
           </p>
         </div>
       </div>
@@ -71,16 +74,49 @@
           <img src="../assets/images/dryrun.jpg" alt="Dryrun" class="gallery-image" />
         </div>
         <div class="gallery-content">
-          <h3>Dryrun Day</h3>
+          <h3>Dryrun</h3>
           <p>
             03:08AM - 08/10,
           </p>
           <p>
             Và anh quyết định nhớ về mười cộng, về dryrun, về những con người đã bên anh vượt qua 4 ngày train vui vẻ và mệt mỏi.
             Đẹp sao thì dryrun là một ngày mưa tầm tã, anh được nhìn những "đứa trẻ" ogl của mình vui vẻ, hăng hái, và tràn đầy năng lượng và tận hưởng ngày dryrun dành cho chính chúng ta.
-            Bức ảnh này quen không? Đúng vậy, bức ảnh này là cảm xúc mà khó có lời nào diễn tả đủ được, khi mà mọi người đều như quên đi mọi điều xung quanh,
+            Bức ảnh này quen không các OGL? Đúng vậy, bức ảnh này là cảm xúc mà khó có lời nào diễn tả đủ được, khi mà mọi người đều như quên đi mọi điều xung quanh,
             tâm trí và trái tim đều đang tập trung vào 10+, và vào gia đình nhỏ xung quanh mình. Khoảnh khắc của những lời hứa, những lời cảm ơn và xin lỗi, và không thể thiếu những giọt nước mắt, nhỉ?
           </p>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-item delay-6">
+        <div class="image-container">
+          <img src="../assets/images/dryrun_2.jpg" alt="Dryrun 2" class="gallery-image" />
+          <img src="../assets/images/train3_3.jpg" alt="Dryrun 3" class="gallery-image" />
+        </div>
+        <div class="gallery-content">
+          <h3>Lời kết.</h3>
+          <p>
+            01:27AM - 09/10,
+          </p>
+          <p>
+            Thật là tuyệt vời. Mười cộng đây rồi, đến rồi, bừng cháy lại trong tim rồi, và lại qua rồi. Nhưng lần này, mười cộng có thể sẽ vẫn tiếp tục và sống mãi trong tầm hồn anh.
+            Anh chưa từng là một người có niềm tin cháy bỏng với 10+. Anh là một K52 lowkey nhất có thể, và anh là một camper không đặc sắc, không nổi bật. Anh rất yêu 10+ khi anh làm camper của 10+ 2020,
+            nhưng khi không được khoác lên màu áo OGL của 10+ 2021, ngọn lửa ấy như đã dập tắt. Những điều về 10+ dần trở nên nhạt nhòa trong anh, và rồi Ngữ cũng vậy.
+            Những năm tháng nhạt nhòa pha đậm màu u tối của nỗi buồn dần trôi qua, và trước khi anh kịp nhận ra, Ngữ đã kết thúc, và một chương mới trong cuộc đời anh đã bắt đầu.
+          </p>
+          <p>- "Nói chuyện với anh vui lắm ấy, sao năm nay anh không về làm sup 10+ thử đi anh?"</p>
+          <p>- "Anh già bỏ mẹ rồi, mày bằng tuổi em trai của anh, nghĩ sao anh về làm sup cho bọn còn nhỏ hơn mày nữa hả?"</p>
+          <p>- "Thôi anh cứ về đi, em nghĩ anh về sẽ tâm sự nói chuyện được nhiều với mọi người đấy. You are a wise man i think your wisdom will help the kids a lot"</p>
+          <p>
+            Và đấy, là khởi đầu cho những tháng hè tuyệt đẹp của anh. Thực sự thì mục đích của anh là tìm một nguồn năng lượng tích cực và "trẻ con"
+            trong cuộc sống bộn bề bận rộn này, và anh đã không hối hận về sự lựa chọn đấy. Anh vẫn luôn là một người của sự lowkey và những khoảng lặng,
+            những bầu không khí yên tĩnh cho những cuộc trò chuyện. Nhưng các đứa trẻ của 10+ ơi, các OGL và camper ơi, cảm ơn các em vì đã mang lại sự tích cực này.
+            Vì nếu không có các em thì anh sẽ không bao giờ có thể tìm lại được ngọn lửa 10+, tìm lại niềm vui với Ngữ như ngày hôm nay. 
+            Cảm ơn các em vì đã mang lại cho anh một mùa hè 2025 thật sự ý nghĩa và đáng nhớ.
+          </p>
+          <p>
+            Và cuối cùng thì, anh sẽ không về làm sup nữa. Đơn giản thôi, anh cảm thấy gia đình OG13 là đủ đáng yêu với anh rồi.
+          </p>
+          <p>- Trần Minh Hiếu, Supporter OG13. -</p>
         </div>
       </div>
     </div>

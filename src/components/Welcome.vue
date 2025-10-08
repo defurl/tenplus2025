@@ -49,6 +49,7 @@
         text-align: center;
         padding: 2rem;
         position: relative;
+        z-index: 2; /* Ensure Welcome appears above other components */
     }
     #welcome h1 { font-size: 4rem; color: #6B4F4F; }
     #welcome p.subtitle { font-size: 2.5rem; color: #A87C7C; margin-top: 1rem; }

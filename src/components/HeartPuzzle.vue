@@ -454,14 +454,8 @@ function initCompletedPuzzle() {
         // Important: Remove focus lock last, after states are updated
         focusLocked.value = false;
         
-        // Restore scroll position to where the puzzle is
-        const puzzleSection = document.getElementById('puzzle');
-        if (puzzleSection) {
-            setTimeout(() => {
-                // Scroll to the puzzle section to ensure it's visible after exit
-                puzzleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 50);
-        }
+        // DO NOT scroll to the puzzle section - this was causing the auto-scrolling issue
+        // Just ensure the puzzle is visible without changing scroll position
     }, 50);
 }
 

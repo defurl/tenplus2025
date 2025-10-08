@@ -12,18 +12,22 @@ const overlayHasBeenClosed = ref(false);
 
 // Handle overlay close event
 function handleOverlayClose() {
-  // Ensure we're at the top of the page
+  // Ensure we're at the top of the page with instant behavior
   window.scrollTo({ top: 0, behavior: 'instant' });
   
   // Set overlay as closed to reveal content
   overlayHasBeenClosed.value = true;
   
-  // Refresh scroll reveal to detect newly added content
-  import('./utils/scrollReveal').then(module => {
-    setTimeout(() => {
+  // Simplified approach: one forced scroll after components render
+  setTimeout(() => {
+    // Force scroll to top to ensure we're at the Welcome component
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
+    // Refresh scroll reveal to detect newly added content
+    import('./utils/scrollReveal').then(module => {
       module.refreshScrollReveal();
-    }, 200);
-  });
+    });
+  }, 100);
 }
 </script>
 
@@ -62,5 +66,16 @@ function handleOverlayClose() {
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-x: hidden;
+  /* Ensure main content doesn't force extra scrolling */
+  overflow-y: visible;
+  margin: 0;
+  padding: 0;
 }
 </style>

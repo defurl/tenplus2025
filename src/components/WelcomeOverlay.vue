@@ -51,11 +51,13 @@ function startTransition() {
   // Scroll to top before transition starts
   window.scrollTo({ top: 0, behavior: 'instant' });
   
-  setTimeout(() => {
-    isVisible.value = false;
-  }, 50);
+  // Hide overlay
+  isVisible.value = false;
   
+  // Emit overlay close event after transition completes
   setTimeout(() => {
+    // Force one more scroll to top just before emitting
+    window.scrollTo({ top: 0, behavior: 'instant' });
     emit('overlayClose');
   }, 1500);
 }

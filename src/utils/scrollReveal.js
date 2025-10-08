@@ -15,8 +15,8 @@ export function setupScrollReveal() {
   // Options for the observer
   const options = {
     root: null, // Use the viewport as the root
-    rootMargin: '0px 0px -100px 0px', // Trigger slightly before element is in view
-    threshold: 0.15 // Trigger when at least 15% of the element is visible
+    rootMargin: '0px 0px -80px 0px', // Trigger slightly before element is in view
+    threshold: 0.1 // Trigger when at least 10% of the element is visible
   };
 
   // Create the observer
