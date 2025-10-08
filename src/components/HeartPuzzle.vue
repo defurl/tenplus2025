@@ -1,5 +1,7 @@
 <template>
-    <section id="puzzle">
+    <section id="puzzle" :class="{'focus-locked': focusLocked}">
+        <!-- Overlay to prevent interactions outside puzzle when locked -->
+        <div v-if="focusLocked" class="focus-lock-overlay"></div>
         <h2 class="fancy-font animate-item">Solve this puzzle!</h2>
         <div class="puzzle-main-container">
             <div ref="piecesTray" class="puzzle-pieces-tray animate-item delay-2">
@@ -33,9 +35,13 @@
                     </div>
                 </div>
                 
-                <button class="reset-button" @click="resetPuzzle">Reset</button>
-                <p v-if="puzzleCompleted" class="fancy-font puzzle-success-message">
-                    Congratulations! Puzzle completed! 🎉
+                <div class="button-container">
+                    <button v-if="isSolving" class="reset-button" @click="resetPuzzle">Reset</button>
+                    <button v-if="!isSolving" class="solve-button" @click="startSolving">Let's go!</button>
+                    <button v-if="isSolving" class="exit-button" @click="initCompletedPuzzle">Exit</button>
+                </div>
+                <p v-if="puzzleCompleted && isSolving" class="fancy-font puzzle-success-message">
+                    Congratulations! Memory pieces together:3! 🎉
                 </p>
             </div>
         </div>
@@ -60,13 +66,18 @@
     align-items: center;
     justify-content: center;
     background-color: #EAD7BB;
+    position: relative; /* Added for focus lock positioning */
+    z-index: 1; /* Ensure the puzzle is above other content */
+    transition: all 0.3s ease-out; /* Smooth transition when switching modes */
 }
 
-/* Animation classes */
+/* Animation classes - Added will-change to improve performance */
 .animate-item {
     opacity: 0;
     transform: translateY(30px);
     animation: fadeUp 1s ease forwards;
+    animation-play-state: paused; /* Animations will be explicitly controlled */
+    will-change: transform, opacity;
 }
 
 .delay-1 { animation-delay: 0.2s; }
@@ -123,8 +134,14 @@
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
-.reset-button {
+.button-container {
     margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.reset-button, .solve-button, .exit-button {
     background-color: #A87C7C;
     color: white;
     padding: 0.5rem 1.5rem;
@@ -133,8 +150,28 @@
     border: none;
     cursor: pointer;
     transition: background-color 0.3s;
+    font-weight: 600;
 }
-.reset-button:hover { background-color: #6B4F4F; }
+
+.reset-button:hover, .solve-button:hover, .exit-button:hover { 
+    background-color: #6B4F4F; 
+}
+
+.solve-button {
+    background-color: #5D8A66;
+}
+
+.solve-button:hover {
+    background-color: #3A5D40;
+}
+
+.exit-button {
+    background-color: #8A5D5D;
+}
+
+.exit-button:hover {
+    background-color: #5D3A3A;
+}
 
 .puzzle-piece {
     position: absolute;
@@ -145,7 +182,7 @@
     background-image: url('../assets/images/og13_1.jpg');
     background-size: 400px 300px;
     background-repeat: no-repeat;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, opacity 0.6s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
     z-index: 5;
     touch-action: none; /* Prevents default touch actions like scrolling */
 }
@@ -169,6 +206,9 @@
     background-image: url('../assets/images/og13_1.jpg');
     background-size: 400px 300px;
     background-repeat: no-repeat;
+    opacity: 1 !important; /* Ensure opacity is always 1 */
+    transform: none !important; /* Prevent unwanted transforms */
+    transition: none !important; /* Disable transitions while dragging */
 }
 
 .drop-zone {
@@ -188,11 +228,79 @@
 
 .puzzle-success-message {
     font-size: 1.5rem;
-    color: #166534;
+    color: white;
     margin-top: 1rem;
     text-align: center;
     animation: fadeIn 0.5s ease-in;
 }
+
+.puzzle-hint-message {
+    font-size: 1.5rem;
+    color: #6B4F4F;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+/* Focus lock styling */
+#puzzle.focus-locked {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9998;
+    overflow-y: auto;
+    padding: 2rem 1rem;
+    transition: all 0.6s ease-in-out;
+    background-color: #EAD7BB; /* Ensure background is visible */
+}
+
+#puzzle:not(.focus-locked) {
+    /* This ensures visibility when not in focus-locked mode */
+    min-height: 100vh; 
+    will-change: transform; /* Prevent flickering during transitions */
+}
+
+.focus-lock-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+}
+
+#puzzle.focus-locked .focus-lock-overlay {
+    opacity: 1;
+}
+
+/* Solving state animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.solving-fade-in {
+    animation: fadeIn 0.8s ease-in-out forwards;
+}
+
+.solving-scale-in {
+    animation: scaleIn 0.8s ease-in-out forwards;
+}
+
+.solving-transition-delay-1 { animation-delay: 0.1s; }
+.solving-transition-delay-2 { animation-delay: 0.3s; }
+.solving-transition-delay-3 { animation-delay: 0.5s; }
+.solving-transition-delay-4 { animation-delay: 0.7s; }
 </style>
 
 <script setup>
@@ -234,12 +342,56 @@ const dragOffsetX = ref(0);
 const dragOffsetY = ref(0);
 const draggingPieceStyle = ref({});
 const highlightedZone = ref(null);
-const puzzleCompleted = ref(false);
+const puzzleCompleted = ref(true); // Start with puzzle completed
+const isSolving = ref(false); // Track if user is actively solving the puzzle
+const focusLocked = ref(false); // Track if focus is locked
 
 // Setup initial state
 onMounted(() => {
-    resetPuzzle();
+    // Initialize with completed puzzle
+    initCompletedPuzzle();
+    
+    // Prevent default touch behaviors that might interfere with dragging
+    document.addEventListener('touchmove', e => {
+        if (isDragging.value || focusLocked.value) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+    
+    // Prevent scrolling with keyboard when focus locked
+    document.addEventListener('keydown', e => {
+        if (focusLocked.value && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || 
+            e.key === 'PageDown' || e.key === 'PageUp' || e.key === 'Space')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Add transition listener for focus-locked changes
+    const puzzleSection = document.getElementById('puzzle');
+    if (puzzleSection) {
+        puzzleSection.addEventListener('transitionend', (e) => {
+            if (e.propertyName === 'transform' || e.propertyName === 'opacity') {
+                if (!focusLocked.value) {
+                    // Ensure we're properly positioned when exiting focus-locked mode
+                    puzzleSection.scrollIntoView({ behavior: 'auto', block: 'start' });
+                }
+            }
+        });
+    }
+    
+    // Start animations after mount
+    setTimeout(() => {
+        startAnimations();
+    }, 100);
 });
+
+function startAnimations() {
+    // Start animations when not dragging
+    const animatedItems = document.querySelectorAll('.animate-item');
+    animatedItems.forEach(item => {
+        item.style.animationPlayState = 'running';
+    });
+}
 
 // Computed to check if puzzle is complete
 const isPuzzleComplete = computed(() => {
@@ -285,13 +437,64 @@ function isPieceOnBoard(pieceId) {
     return piecesOnBoard.value.some(p => p.id === pieceId);
 }
 
+// Initialize with completed puzzle
+function initCompletedPuzzle() {
+    // First, restore normal scrolling
+    document.body.style.overflow = '';
+    
+    // Set a small delay to ensure smooth transition
+    setTimeout(() => {
+        // Clear states
+        piecePositions.clear();
+        piecesInTray.value = [];
+        piecesOnBoard.value = [...PIECES]; // All pieces on board
+        puzzleCompleted.value = true;
+        isSolving.value = false;
+        
+        // Important: Remove focus lock last, after states are updated
+        focusLocked.value = false;
+        
+        // Restore scroll position to where the puzzle is
+        const puzzleSection = document.getElementById('puzzle');
+        if (puzzleSection) {
+            setTimeout(() => {
+                // Scroll to the puzzle section to ensure it's visible after exit
+                puzzleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+        }
+    }, 50);
+}
+
+// Start solving the puzzle
+function startSolving() {
+    // Set focus lock
+    focusLocked.value = true;
+    isSolving.value = true;
+    puzzleCompleted.value = false;
+    
+    // Scroll to puzzle section and lock it
+    const puzzleSection = document.getElementById('puzzle');
+    if (puzzleSection) {
+        puzzleSection.scrollIntoView({ behavior: 'smooth' });
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Scramble and move pieces to tray
+    resetPuzzle();
+}
+
 // Reset puzzle
 function resetPuzzle() {
     // Clear states
     piecePositions.clear();
-    piecesInTray.value = [...PIECES].sort(() => Math.random() - 0.5);
-    piecesOnBoard.value = [];
-    puzzleCompleted.value = false;
+    if (isSolving.value) {
+        piecesInTray.value = [...PIECES].sort(() => Math.random() - 0.5);
+        piecesOnBoard.value = [];
+        puzzleCompleted.value = false;
+    } else {
+        // If not in solving mode, reset to completed state
+        initCompletedPuzzle();
+    }
     
     // Position pieces in tray with random positions
     piecesInTray.value.forEach((piece) => {
@@ -313,25 +516,36 @@ function resetPuzzle() {
 
 // Drag handlers
 function startDrag(e, piece) {
+    // Only allow dragging when solving
+    if (!isSolving.value) return;
+    
     isDragging.value = true;
     draggedPiece.value = piece;
+    
+    // Pause animations during drag to prevent flickering
+    document.querySelectorAll('.animate-item').forEach(item => {
+        item.style.animationPlayState = 'paused';
+    });
     
     // Calculate cursor position on the piece
     const element = e.target;
     const rect = element.getBoundingClientRect();
-    const clientX = e.clientX || e.touches[0].clientX;
-    const clientY = e.clientY || e.touches[0].clientY;
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
     
-    // Store offset from center
-    dragOffsetX.value = clientX - (rect.left + rect.width/2);
-    dragOffsetY.value = clientY - (rect.top + rect.height/2);
+    if (!clientX || !clientY) return;
     
-    // Update dragging piece style
+    // Store offset from cursor to piece's top-left corner
+    // getBoundingClientRect already accounts for scroll position
+    dragOffsetX.value = clientX - rect.left;
+    dragOffsetY.value = clientY - rect.top;
+    
+    // Update dragging piece style using fixed position 
     draggingPieceStyle.value = {
         width: `${piece.width}px`,
         height: `${piece.height}px`,
-        left: `${clientX - (piece.width/2) - dragOffsetX.value}px`,
-        top: `${clientY - (piece.height/2) - dragOffsetY.value}px`,
+        left: `${clientX - dragOffsetX.value}px`,
+        top: `${clientY - dragOffsetY.value}px`,
         transform: 'rotate(0deg) scale(1)',
         backgroundPosition: `-${piece.bgX}px -${piece.bgY}px`
     };
@@ -350,18 +564,21 @@ function handleDrag(e) {
     if (!isDragging.value) return;
     e.preventDefault();
     
-    const clientX = e.clientX || e.touches[0].clientX;
-    const clientY = e.clientY || e.touches[0].clientY;
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
     
-    // Update dragging piece position
+    if (!clientX || !clientY) return;
+    
+    // Update dragging piece position with consistent offset
     draggingPieceStyle.value = {
         ...draggingPieceStyle.value,
-        left: `${clientX - (draggedPiece.value.width/2) - dragOffsetX.value}px`,
-        top: `${clientY - (draggedPiece.value.height/2) - dragOffsetY.value}px`
+        left: `${clientX - dragOffsetX.value}px`,
+        top: `${clientY - dragOffsetY.value}px`
     };
     
     // Check if over correct drop zone
     if (puzzleBoardContainer.value) {
+        // Get the current position of the board, accounting for any scrolling
         const boardRect = puzzleBoardContainer.value.getBoundingClientRect();
         const isOverBoard = clientX >= boardRect.left && clientX <= boardRect.right &&
                           clientY >= boardRect.top && clientY <= boardRect.bottom;
@@ -371,6 +588,7 @@ function handleDrag(e) {
         if (isOverBoard) {
             // Find the correct zone for this piece
             const correctZoneData = PIECES.find(p => p.id === draggedPiece.value.id);
+            // Use getBoundingClientRect values which already account for scrolling
             const zoneLeft = boardRect.left + correctZoneData.boardX;
             const zoneRight = zoneLeft + correctZoneData.width;
             const zoneTop = boardRect.top + correctZoneData.boardY;
@@ -388,10 +606,19 @@ function handleDrag(e) {
 function handleDragEnd(e) {
     if (!isDragging.value) return;
     
+    // Ensure we have valid coordinates even if event is touch or mouse
     const clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
     const clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
     
+    // Safety check - if no valid coordinates, return to tray
+    if (!clientX || !clientY) {
+        piecesInTray.value.push(draggedPiece.value);
+        resetDragState();
+        return;
+    }
+    
     if (puzzleBoardContainer.value) {
+        // Get current board position including any scrolling
         const boardRect = puzzleBoardContainer.value.getBoundingClientRect();
         const isOverBoard = clientX >= boardRect.left && clientX <= boardRect.right &&
                           clientY >= boardRect.top && clientY <= boardRect.bottom;
@@ -405,6 +632,15 @@ function handleDragEnd(e) {
                 setTimeout(() => {
                     puzzleCompleted.value = true;
                     celebratePuzzleCompletion();
+                    
+                    // Release focus lock after a delay to allow celebration
+                    setTimeout(() => {
+                        // Keep focus locked but allow scrolling so user can see the message
+                        document.body.style.overflow = '';
+                        
+                        // Don't automatically exit the puzzle view
+                        // User must click "Exit" button
+                    }, 1500);
                 }, 300);
             }
         } else {
@@ -432,6 +668,11 @@ function handleDragEnd(e) {
     }
     
     // Reset dragging state
+    resetDragState();
+}
+
+// Helper function to cleanly reset drag state
+function resetDragState() {
     isDragging.value = false;
     draggedPiece.value = null;
     highlightedZone.value = null;
@@ -441,6 +682,13 @@ function handleDragEnd(e) {
     document.removeEventListener('mouseup', handleDragEnd);
     document.removeEventListener('touchmove', handleDrag);
     document.removeEventListener('touchend', handleDragEnd);
+    
+    // Resume animations
+    setTimeout(() => {
+        document.querySelectorAll('.animate-item').forEach(item => {
+            item.style.animationPlayState = 'running';
+        });
+    }, 100);
 }
 
 function celebratePuzzleCompletion() {
