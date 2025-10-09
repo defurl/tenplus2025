@@ -32,7 +32,12 @@
         <div class="gallery-content">
           <h3>Hòa Sắc</h3>
           <p>
-            Tui không đi train 2, tui sẽ đợi nọc viết phần này :>
+            ê đi dc kiểu nửa buổi mà t bị trí nhớ kém í. dm nhớ nhất lúc t chiều tới t chạy vào xong akn với ryan đang bóp đít nhau
+            GAY VÃI. eo hai đứa thấy t thì quay ra múa múa hâm vcl !?. dm nếu t nhớ ko nhầm thì hôm đấy free mic nhở.
+            ơ à đâu hình như t nhớ nhầm rồi hihi kệ đi. ê xong hôm đấy lmh với t cứ móc móc lọ lọ,
+            kiểu hình như mấy đứa xung quanh khá đánh giá bọn t í (t cũng thấy KINH VÃI yêu vl).
+            oidoioi t quên sạch huhuhu nhưng mà t nhớ hết train thắng ngọt bao nhân trần ngon vl khen khen khen.
+            ok bye bye thanks og love u
           </p>
         </div>
       </div>
@@ -63,7 +68,14 @@
         <div class="gallery-content">
           <h3>Tỏa Sắc</h3>
           <p>
-            Tui cũng sủi train 4 :>
+            hơi tiếc vì đến gần cuối (train4) t mới bắt đầu hơi fomo og.
+            eo ơi t hơi bị đấu tranh tư tưởng có nên chạy phọt cứt lên trường chơi bili bàn chà bẩn vcl với ae ko và yay may vl t fomo thành công.
+            dm lúc đến t còn phân vân có nên vào ko TẠI BÁ HUY NGỒI MỘT GÓC CHẢNH LOZ Đ CHƠI nma thôi KỆ hihi.
+            dcm KINH KHỦNG VÃI CMAY THỐI VÃI CẢ L KIỂU CHỤC CÁI LỒN KHẮM KO TẮM ý oh no không sao yêu vcl.
+            đoạn ic đíp talk sao đ con nào khóc v !?? xong lại còn tứ trụ t phân hân dái ngồi cuối cười nói ồn ào NGẠI VÃI THÍCH VÃI Ý.
+            chó ryn cứ ném xác bóng nước oẹ oẹ ewwwww. mỗi thế hết cụ train rồi xong.
+            dm thật ra tới dc nửa tiếng cuối thôi nên t cũng chả nhớ cme gì lắm nên VẮT NÁT ÓC MỚI VT DC DÀI THẾ ĐẤY yêu t ko kkkkk.
+            t không nhắc hết tên cmay đâu nhưng ai t cũng yêu vl biết thế nhé hihi kimochi yamate ủa ai nỉ
           </p>
         </div>
       </div>

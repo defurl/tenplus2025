@@ -122,6 +122,37 @@
     min-height: 380px;
     overflow: hidden;
 }
+
+@media (max-width: 480px) {
+    .puzzle-pieces-tray {
+        width: 280px;
+        height: 280px;
+        min-height: 280px;
+        padding: 0.75rem;
+    }
+    
+    .puzzle-main-container {
+        gap: 1rem;
+    }
+    
+    #puzzle h2 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    #puzzle {
+        padding: 3rem 0.5rem;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .puzzle-pieces-tray {
+        width: 320px;
+        height: 320px;
+        min-height: 320px;
+        padding: 0.75rem;
+    }
+}
 .puzzle-board-area {
     display: flex;
     flex-direction: column;
@@ -134,6 +165,22 @@
     background-color: rgba(255,255,255,0.5);
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 480px) {
+    .puzzle-board-container {
+        width: 320px;
+        height: 240px;
+        overflow: hidden; /* Prevent overflow on small screens */
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .puzzle-board-container {
+        width: 360px;
+        height: 270px;
+        overflow: hidden; /* Prevent overflow on tablet screens */
+    }
 }
 .button-container {
     margin-top: 1.5rem;
@@ -181,11 +228,33 @@
     border-radius: 4px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.3);
     background-image: url('../assets/images/og13_1.jpg');
-    background-size: 400px 300px;
     background-repeat: no-repeat;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
     z-index: 5;
-    touch-action: manipulation; /* Allow pinch-zoom but prevent delay on tap */
+    touch-action: none; /* Disable browser touch actions on pieces to allow custom handling */
+    -webkit-touch-callout: none; /* Prevent iOS callout */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version */
+    /* Background size is now set dynamically in the style attribute */
+}
+
+@media (max-width: 480px) {
+    .puzzle-piece {
+        /* Smaller border for mobile screens */
+        border-width: 1px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .puzzle-piece {
+        /* Adjusted border for tablet screens */
+        border-width: 1px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+    }
 }
 
 .puzzle-piece.placed {
@@ -210,6 +279,8 @@
     opacity: 1 !important; /* Ensure opacity is always 1 */
     transform: none !important; /* Prevent unwanted transforms */
     transition: none !important; /* Disable transitions while dragging */
+    touch-action: none !important; /* Ensure no touch actions happen on the dragging piece */
+    will-change: left, top; /* Optimize for position changes */
 }
 
 .drop-zone {
@@ -254,6 +325,7 @@
     padding: 2rem 1rem;
     transition: all 0.6s ease-in-out;
     background-color: #EAD7BB; /* Ensure background is visible */
+    touch-action: pan-y pinch-zoom; /* Only allow vertical scroll and zoom */
 }
 
 #puzzle:not(.focus-locked) {
@@ -306,27 +378,61 @@
 </style>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 
-// Define puzzle pieces
+// Helper function to get appropriate piece size based on viewport width
+function getPieceSizeConfig() {
+    // Default size for desktop
+    let pieceSize = 100;
+    let boardWidth = 400;
+    let boardHeight = 300;
+    
+    // Check for mobile screens
+    if (typeof window !== 'undefined') {
+        const width = window.innerWidth;
+        if (width <= 480) {
+            pieceSize = 80; // base size
+            // Use exact dimensions from CSS for smaller screens
+            boardWidth = 320;  // Matches CSS width exactly
+            boardHeight = 240; // Matches CSS height exactly
+        } else if (width <= 768) {
+            pieceSize = 90; // base size
+            // Use exact dimensions from CSS for tablet screens
+            boardWidth = 360;  // Matches CSS width exactly
+            boardHeight = 270; // Matches CSS height exactly
+        }
+    }
+    
+    return { pieceSize, boardWidth, boardHeight };
+}
+
+// Define puzzle pieces based on responsive size - this needs to update on resize
+const { pieceSize, boardWidth, boardHeight } = getPieceSizeConfig();
+
+// Calculate how pieces should be arranged to fit the board size exactly
+const cols = 4; // we want 4 pieces per row
+const rows = 3; // 3 rows
+const actualPieceWidth = boardWidth / cols;
+const actualPieceHeight = boardHeight / rows;
+
 const PIECES = [
     // Row 1 (top)
-    { id: 1, width: 100, height: 100, boardX: 0, boardY: 0, bgX: 0, bgY: 0 },
-    { id: 2, width: 100, height: 100, boardX: 100, boardY: 0, bgX: 100, bgY: 0 },
-    { id: 3, width: 100, height: 100, boardX: 200, boardY: 0, bgX: 200, bgY: 0 },
-    { id: 4, width: 100, height: 100, boardX: 300, boardY: 0, bgX: 300, bgY: 0 },
+    { id: 1, width: actualPieceWidth, height: actualPieceHeight, boardX: 0, boardY: 0, bgX: 0, bgY: 0 },
+    { id: 2, width: actualPieceWidth, height: actualPieceHeight, boardX: actualPieceWidth, boardY: 0, bgX: pieceSize, bgY: 0 },
+    { id: 3, width: actualPieceWidth, height: actualPieceHeight, boardX: actualPieceWidth * 2, boardY: 0, bgX: pieceSize * 2, bgY: 0 },
+    { id: 4, width: actualPieceWidth, height: actualPieceHeight, boardX: actualPieceWidth * 3, boardY: 0, bgX: pieceSize * 3, bgY: 0 },
     
     // Row 2 (middle)
-    { id: 5, width: 100, height: 100, boardX: 0, boardY: 100, bgX: 0, bgY: 100 },
-    { id: 6, width: 100, height: 100, boardX: 100, boardY: 100, bgX: 100, bgY: 100 },
-    { id: 7, width: 100, height: 100, boardX: 200, boardY: 100, bgX: 200, bgY: 100 },
-    { id: 8, width: 100, height: 100, boardX: 300, boardY: 100, bgX: 300, bgY: 100 },
+    { id: 5, width: actualPieceWidth, height: actualPieceHeight, boardX: 0, boardY: actualPieceHeight, bgX: 0, bgY: pieceSize },
+    { id: 6, width: actualPieceWidth, height: actualPieceHeight, boardX: actualPieceWidth, boardY: actualPieceHeight, bgX: pieceSize, bgY: pieceSize },
+    { id: 7, width: actualPieceWidth, height: actualPieceHeight, boardX: actualPieceWidth * 2, boardY: actualPieceHeight, bgX: pieceSize * 2, bgY: pieceSize },
+    { id: 8, width: actualPieceWidth, height: actualPieceHeight, boardX: actualPieceWidth * 3, boardY: actualPieceHeight, bgX: pieceSize * 3, bgY: pieceSize },
     
     // Row 3 (bottom)
-    { id: 9, width: 100, height: 100, boardX: 0, boardY: 200, bgX: 0, bgY: 200 },
-    { id: 10, width: 100, height: 100, boardX: 100, boardY: 200, bgX: 100, bgY: 200 },
-    { id: 11, width: 100, height: 100, boardX: 200, boardY: 200, bgX: 200, bgY: 200 },
-    { id: 12, width: 100, height: 100, boardX: 300, boardY: 200, bgX: 300, bgY: 200 }
+    { id: 9, width: actualPieceWidth, height: actualPieceHeight, boardX: 0, boardY: actualPieceHeight * 2, bgX: 0, bgY: pieceSize * 2 },
+    { id: 10, width: actualPieceWidth, height: actualPieceHeight, boardX: actualPieceWidth, boardY: actualPieceHeight * 2, bgX: pieceSize, bgY: pieceSize * 2 },
+    { id: 11, width: actualPieceWidth, height: actualPieceHeight, boardX: actualPieceWidth * 2, boardY: actualPieceHeight * 2, bgX: pieceSize * 2, bgY: pieceSize * 2 },
+    { id: 12, width: actualPieceWidth, height: actualPieceHeight, boardX: actualPieceWidth * 3, boardY: actualPieceHeight * 2, bgX: pieceSize * 3, bgY: pieceSize * 2 }
 ];
 
 // Refs
@@ -353,14 +459,13 @@ onMounted(() => {
     // Initialize with completed puzzle
     initCompletedPuzzle();
     
-    // Only prevent default touch behaviors when actually dragging a piece
+    // Global touch event handler - only prevent default when actually dragging
     // This ensures normal scrolling works when not interacting with puzzle pieces
     document.addEventListener('touchmove', e => {
-        // Only prevent default if actively dragging a piece, not just when focus locked
-        if (isDragging.value) {
+        // Only prevent default if actively dragging a piece
+        if (isDragging.value && e.cancelable) {
             e.preventDefault();
         }
-        // Allow normal scrolling in all other cases
     }, { passive: false });
     
     // Prevent scrolling with keyboard when focus locked
@@ -387,6 +492,26 @@ onMounted(() => {
     }, 100);
 });
 
+// Clean up all event listeners when component is unmounted
+onBeforeUnmount(() => {
+    document.removeEventListener('touchmove', e => {
+        if (isDragging.value && e.cancelable) {
+            e.preventDefault();
+        }
+    });
+    document.removeEventListener('keydown', e => {
+        if (focusLocked.value && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || 
+            e.key === 'PageDown' || e.key === 'PageUp' || e.key === 'Space')) {
+            e.preventDefault();
+        }
+    });
+    document.removeEventListener('mousemove', handleDrag);
+    document.removeEventListener('mouseup', handleDragEnd);
+    document.removeEventListener('touchmove', handleDrag);
+    document.removeEventListener('touchend', handleDragEnd);
+    document.removeEventListener('touchcancel', handleDragEnd);
+});
+
 function startAnimations() {
     // Start animations when not dragging
     const animatedItems = document.querySelectorAll('.animate-item');
@@ -403,13 +528,19 @@ const isPuzzleComplete = computed(() => {
 // Styling functions
 function getPieceStyle(piece) {
     const position = piecePositions.get(piece.id);
+    // Adjust background position based on actual piece size vs original background image
+    const { pieceSize } = getPieceSizeConfig();
+    const bgScaleX = pieceSize / piece.width;  // Scale factor for background position
+    const bgScaleY = pieceSize / piece.height; // Scale factor for background position
+    
     return {
         width: `${piece.width}px`,
         height: `${piece.height}px`,
         left: position ? `${position.left}px` : '0px',
         top: position ? `${position.top}px` : '0px',
         transform: position ? `rotate(${position.rotation}deg) scale(${position.scale})` : 'rotate(0deg)',
-        backgroundPosition: `-${piece.bgX}px -${piece.bgY}px`,
+        backgroundPosition: `-${piece.bgX * bgScaleX}px -${piece.bgY * bgScaleY}px`,
+        backgroundSize: `${400 * bgScaleX}px ${300 * bgScaleY}px`,
         zIndex: position ? position.zIndex : 5,
     };
 }
@@ -425,12 +556,18 @@ function getDropZoneStyle(piece) {
 }
 
 function getPlacedPieceStyle(piece) {
+    // Adjust background position based on actual piece size vs original background image
+    const { pieceSize } = getPieceSizeConfig();
+    const bgScaleX = pieceSize / piece.width;  // Scale factor for background position
+    const bgScaleY = pieceSize / piece.height; // Scale factor for background position
+    
     return {
         width: `${piece.width}px`,
         height: `${piece.height}px`,
         left: `${piece.boardX}px`,
         top: `${piece.boardY}px`,
-        backgroundPosition: `-${piece.bgX}px -${piece.bgY}px`
+        backgroundPosition: `-${piece.bgX * bgScaleX}px -${piece.bgY * bgScaleY}px`,
+        backgroundSize: `${400 * bgScaleX}px ${300 * bgScaleY}px`
     };
 }
 
@@ -502,20 +639,67 @@ function resetPuzzle() {
     }
     
     // Position pieces in tray with random positions
-    piecesInTray.value.forEach((piece) => {
-        const margin = 20;
-        const trayWidth = 380;
-        const trayHeight = 380;
-        const maxX = trayWidth - piece.width - margin;
-        const maxY = trayHeight - piece.height - margin;
+    piecesInTray.value.forEach((piece, index) => {
+        // Get the actual tray dimensions from the DOM element for accurate positioning
+        const trayElement = piecesTray.value;
+        const margin = 10; // Smaller margin for mobile
+        let trayWidth, trayHeight;
         
-        piecePositions.set(piece.id, {
-            left: Math.max(margin, Math.random() * maxX),
-            top: Math.max(margin, Math.random() * maxY),
-            rotation: Math.random() * 20 - 10,
-            scale: 0.85,
-            zIndex: Math.floor(Math.random() * 10)
-        });
+        // Use actual tray dimensions if available, fall back to default
+        if (trayElement) {
+            const trayRect = trayElement.getBoundingClientRect();
+            trayWidth = trayRect.width - margin * 2;
+            trayHeight = trayRect.height - margin * 2;
+        } else {
+            // Responsive defaults
+            if (window.innerWidth <= 480) {
+                trayWidth = 260; // 280 - margins
+                trayHeight = 260;
+            } else if (window.innerWidth <= 768) {
+                trayWidth = 300; // 320 - margins
+                trayHeight = 300;
+            } else {
+                trayWidth = 360; // 380 - margins
+                trayHeight = 360;
+            }
+        }
+        
+        // For mobile, arrange pieces in a more organized grid to prevent overlap
+        if (window.innerWidth <= 768) {
+            // Create a grid arrangement for small screens
+            const cols = 3; // 3 columns for 12 pieces
+            const rows = 4;
+            const colSize = trayWidth / cols;
+            const rowSize = trayHeight / rows;
+            
+            // Calculate grid position
+            const col = index % cols;
+            const row = Math.floor(index / cols);
+            
+            // Add some randomness but stay within cell bounds
+            const randomOffsetX = Math.random() * (colSize - piece.width) * 0.8;
+            const randomOffsetY = Math.random() * (rowSize - piece.height) * 0.8;
+            
+            piecePositions.set(piece.id, {
+                left: margin + (col * colSize) + randomOffsetX,
+                top: margin + (row * rowSize) + randomOffsetY,
+                rotation: Math.random() * 10 - 5, // Less rotation on mobile
+                scale: 0.85,
+                zIndex: Math.floor(Math.random() * 10)
+            });
+        } else {
+            // Desktop version - fully random positioning
+            const maxX = Math.max(0, trayWidth - piece.width);
+            const maxY = Math.max(0, trayHeight - piece.height);
+            
+            piecePositions.set(piece.id, {
+                left: margin + Math.min(maxX, Math.random() * maxX),
+                top: margin + Math.min(maxY, Math.random() * maxY),
+                rotation: Math.random() * 20 - 10,
+                scale: 0.85,
+                zIndex: Math.floor(Math.random() * 10)
+            });
+        }
     });
 }
 
@@ -524,19 +708,35 @@ function startDrag(e, piece) {
     // Only allow dragging when solving
     if (!isSolving.value) return;
     
+    // Always prevent default for touch events to avoid scrolling while dragging
+    if (e.cancelable) {
+        e.preventDefault();
+    }
+    
+    // Prevent double-click issues by returning if already dragging
+    if (isDragging.value) {
+        return;
+    }
+    
+    // Set dragging state first
     isDragging.value = true;
     draggedPiece.value = piece;
-    
-    // Pause animations during drag to prevent flickering
-    document.querySelectorAll('.animate-item').forEach(item => {
-        item.style.animationPlayState = 'paused';
-    });
     
     // Calculate cursor position on the piece
     const element = e.target;
     const rect = element.getBoundingClientRect();
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    // Handle both mouse and touch events
+    let clientX, clientY;
+    if (e.type.startsWith('touch')) {
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
     
     if (!clientX || !clientY) return;
     
@@ -545,15 +745,23 @@ function startDrag(e, piece) {
     dragOffsetX.value = clientX - rect.left;
     dragOffsetY.value = clientY - rect.top;
     
-    // Update dragging piece style using fixed position 
+    // Update dragging piece style using fixed position
+    // Adjust background position based on actual piece size vs original background image
+    const bgScaleX = pieceSize / piece.width;  // Scale factor for background position
+    const bgScaleY = pieceSize / piece.height; // Scale factor for background position
+    
     draggingPieceStyle.value = {
         width: `${piece.width}px`,
         height: `${piece.height}px`,
         left: `${clientX - dragOffsetX.value}px`,
         top: `${clientY - dragOffsetY.value}px`,
         transform: 'rotate(0deg) scale(1)',
-        backgroundPosition: `-${piece.bgX}px -${piece.bgY}px`
+        backgroundPosition: `-${piece.bgX * bgScaleX}px -${piece.bgY * bgScaleY}px`,
+        backgroundSize: `${400 * bgScaleX}px ${300 * bgScaleY}px`
     };
+    
+    // Remove from tray
+    piecesInTray.value = piecesInTray.value.filter(p => p.id !== piece.id);
     
     // Remove from tray
     piecesInTray.value = piecesInTray.value.filter(p => p.id !== piece.id);
@@ -561,36 +769,67 @@ function startDrag(e, piece) {
     // Add document listeners
     document.addEventListener('mousemove', handleDrag);
     document.addEventListener('mouseup', handleDragEnd);
+    
+    // For mobile: explicitly set passive to false to enable preventDefault
     document.addEventListener('touchmove', handleDrag, { passive: false });
     document.addEventListener('touchend', handleDragEnd);
+    document.addEventListener('touchcancel', handleDragEnd);
 }
 
 function handleDrag(e) {
     if (!isDragging.value) return;
     
-    // Only preventDefault if actually dragging to allow normal scrolling otherwise
-    if (isDragging.value) {
+    // Always prevent default when dragging to prevent scrolling
+    if (e.cancelable) {
         e.preventDefault();
     }
     
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    // Handle both mouse and touch events
+    let clientX, clientY;
+    if (e.type.startsWith('touch')) {
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
     
     if (!clientX || !clientY) return;
     
-    // Update dragging piece position with consistent offset
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Calculate piece dimensions with some padding
+    const pieceWidth = draggedPiece.value.width;
+    const pieceHeight = draggedPiece.value.height;
+    
+    // Calculate constrained positions to keep piece within viewport
+    const constrainedX = Math.min(Math.max(0, clientX - dragOffsetX.value), viewportWidth - pieceWidth);
+    const constrainedY = Math.min(Math.max(0, clientY - dragOffsetY.value), viewportHeight - pieceHeight);
+    
+    // Update dragging piece position with constrained values
     draggingPieceStyle.value = {
         ...draggingPieceStyle.value,
-        left: `${clientX - dragOffsetX.value}px`,
-        top: `${clientY - dragOffsetY.value}px`
+        left: `${constrainedX}px`,
+        top: `${constrainedY}px`
     };
     
     // Check if over correct drop zone
     if (puzzleBoardContainer.value) {
         // Get the current position of the board, accounting for any scrolling
         const boardRect = puzzleBoardContainer.value.getBoundingClientRect();
-        const isOverBoard = clientX >= boardRect.left && clientX <= boardRect.right &&
-                          clientY >= boardRect.top && clientY <= boardRect.bottom;
+        
+        // Constrain the check to the visible boundaries of the board
+        const boardLeft = boardRect.left;
+        const boardRight = boardRect.right;
+        const boardTop = boardRect.top;
+        const boardBottom = boardRect.bottom;
+        
+        const isOverBoard = clientX >= boardLeft && clientX <= boardRight &&
+                          clientY >= boardTop && clientY <= boardBottom;
         
         highlightedZone.value = null;
         
@@ -616,8 +855,16 @@ function handleDragEnd(e) {
     if (!isDragging.value) return;
     
     // Ensure we have valid coordinates even if event is touch or mouse
-    const clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
-    const clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+    let clientX, clientY;
+    if (e.type.startsWith('touch')) {
+        if (e.changedTouches && e.changedTouches.length > 0) {
+            clientX = e.changedTouches[0].clientX;
+            clientY = e.changedTouches[0].clientY;
+        }
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
     
     // Safety check - if no valid coordinates, return to tray
     if (!clientX || !clientY) {
@@ -656,20 +903,88 @@ function handleDragEnd(e) {
             // Return to tray
             piecesInTray.value.push(draggedPiece.value);
             
-            // Random position in tray
-            const margin = 20;
-            const trayWidth = piecesTray.value?.clientWidth || 380;
-            const trayHeight = piecesTray.value?.clientHeight || 380;
-            const maxX = trayWidth - draggedPiece.value.width - margin;
-            const maxY = trayHeight - draggedPiece.value.height - margin;
+            // Random position in tray - using actual dimensions for responsive support
+            const trayElement = piecesTray.value;
+            const margin = 10; // Smaller margin for mobile
+            let trayWidth, trayHeight;
             
-            piecePositions.set(draggedPiece.value.id, {
-                left: Math.max(margin, Math.random() * maxX),
-                top: Math.max(margin, Math.random() * maxY),
-                rotation: Math.random() * 20 - 10,
-                scale: 0.85,
-                zIndex: Math.floor(Math.random() * 10)
-            });
+            // Use actual tray dimensions if available
+            if (trayElement) {
+                const trayRect = trayElement.getBoundingClientRect();
+                trayWidth = trayRect.width - margin * 2;
+                trayHeight = trayRect.height - margin * 2;
+            } else {
+                // Responsive defaults
+                if (window.innerWidth <= 480) {
+                    trayWidth = 260; // 280 - margins
+                    trayHeight = 260;
+                } else if (window.innerWidth <= 768) {
+                    trayWidth = 300; // 320 - margins
+                    trayHeight = 300;
+                } else {
+                    trayWidth = 360; // 380 - margins
+                    trayHeight = 360;
+                }
+            }
+            
+            // For mobile, find an empty cell in the grid
+            if (window.innerWidth <= 768) {
+                // Get current pieces in tray to avoid overlap
+                const piecesInTrayCount = piecesInTray.value.length;
+                
+                // Create a grid arrangement
+                const cols = 3; // 3 columns for 12 pieces
+                const rows = 4;
+                const colSize = trayWidth / cols;
+                const rowSize = trayHeight / rows;
+                
+                // Find an available grid cell
+                const availableCells = [];
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const cellIndex = row * cols + col;
+                        if (cellIndex >= piecesInTrayCount) {
+                            availableCells.push({ row, col });
+                        }
+                    }
+                }
+                
+                // If there are available cells, use one
+                let targetCell;
+                if (availableCells.length > 0) {
+                    targetCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+                } else {
+                    // All cells occupied, pick a random one
+                    targetCell = {
+                        row: Math.floor(Math.random() * rows),
+                        col: Math.floor(Math.random() * cols)
+                    };
+                }
+                
+                // Add some randomness but stay within cell bounds
+                const randomOffsetX = Math.random() * (colSize - draggedPiece.value.width) * 0.8;
+                const randomOffsetY = Math.random() * (rowSize - draggedPiece.value.height) * 0.8;
+                
+                piecePositions.set(draggedPiece.value.id, {
+                    left: margin + (targetCell.col * colSize) + randomOffsetX,
+                    top: margin + (targetCell.row * rowSize) + randomOffsetY,
+                    rotation: Math.random() * 10 - 5, // Less rotation on mobile
+                    scale: 0.85,
+                    zIndex: Math.floor(Math.random() * 10)
+                });
+            } else {
+                // Desktop version - fully random positioning
+                const maxX = Math.max(0, trayWidth - draggedPiece.value.width);
+                const maxY = Math.max(0, trayHeight - draggedPiece.value.height);
+                
+                piecePositions.set(draggedPiece.value.id, {
+                    left: margin + Math.min(maxX, Math.random() * maxX),
+                    top: margin + Math.min(maxY, Math.random() * maxY),
+                    rotation: Math.random() * 20 - 10,
+                    scale: 0.85,
+                    zIndex: Math.floor(Math.random() * 10)
+                });
+            }
         }
     } else {
         // If board is not available, return to tray
@@ -682,6 +997,7 @@ function handleDragEnd(e) {
 
 // Helper function to cleanly reset drag state
 function resetDragState() {
+    // Reset state variables first
     isDragging.value = false;
     draggedPiece.value = null;
     highlightedZone.value = null;
@@ -691,13 +1007,12 @@ function resetDragState() {
     document.removeEventListener('mouseup', handleDragEnd);
     document.removeEventListener('touchmove', handleDrag);
     document.removeEventListener('touchend', handleDragEnd);
+    document.removeEventListener('touchcancel', handleDragEnd);
     
-    // Resume animations
-    setTimeout(() => {
-        document.querySelectorAll('.animate-item').forEach(item => {
-            item.style.animationPlayState = 'running';
-        });
-    }, 100);
+    // Resume animations immediately to avoid state stuck in paused
+    document.querySelectorAll('.animate-item').forEach(item => {
+        item.style.animationPlayState = 'running';
+    });
 }
 
 function celebratePuzzleCompletion() {

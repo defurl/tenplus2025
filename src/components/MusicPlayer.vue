@@ -244,7 +244,7 @@ let fadeTimeoutId = null;
 
 // Import audio files - this is the recommended way in Vue/Vite to handle assets
 import aThousandYears from '../assets/audios/a-thousand-years.mp3';
-import dieWithASmile from '../assets/audios/die-with-a-smile.mp3';
+import aMillionDreams from '../assets/audios/a-million-dreams.mp3';
 import everythingINeed from '../assets/audios/everything-i-need.mp3';
 import howFarIWillGo from '../assets/audios/how-far-i-will-go.mp3';
 import unconditionally from '../assets/audios/unconditionally.mp3';
@@ -252,10 +252,10 @@ import unconditionally from '../assets/audios/unconditionally.mp3';
 // Define songs collection
 const songs = reactive([
     { title: 'A Thousand Years', artist: 'Christina Perri', file: aThousandYears },
-    { title: 'Die With A Smile', artist: 'Bruno Mars & Lady Gaga', file: dieWithASmile },
     { title: 'Everything I Need', artist: 'Skylar Grey', file: everythingINeed },
+    { title: 'Unconditionally', artist: 'Katy Perry', file: unconditionally },
+    { title: 'A Million Dreams', artist: 'The Greatest Showman Cast', file: aMillionDreams },
     { title: 'How Far I\'ll Go', artist: 'Auli\'i Cravalho', file: howFarIWillGo },
-    { title: 'Unconditionally', artist: 'Katy Perry', file: unconditionally }
 ]);
 
 // Computed property for current song
